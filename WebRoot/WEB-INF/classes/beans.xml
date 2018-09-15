@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-2.5.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-2.5.xsd"
+	default-autowire="byName">	
+	
+	<!-- 导入外部数据库信息文件 -->
+    <context:property-placeholder location="classpath:db.properties"/>
+    
+	<!-- 数据源配置 -->
+    <bean id="dataSource"
+		class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName"
+			value="${driver}">
+		</property>
+		<property name="url"
+			value="${url}">
+		</property>
+		<property name="username" value="${username}"></property>
+		<property name="password" value="${password}"></property>
+	</bean>	
+	
+	<!-- SessionFactory缓存管理配置 -->
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource">
+			<ref bean="dataSource"></ref>
+		</property>
+		<property name="mappingResources">
+			<list>
+				<value>com/cbs/po/Users.hbm.xml</value>
+				<value>com/cbs/po/Menu.hbm.xml</value>
+				<value>com/cbs/po/Role.hbm.xml</value>
+				<value>com/cbs/po/Dictionary.hbm.xml</value>
+				<value>com/cbs/po/Driver.hbm.xml</value>
+				<value>com/cbs/po/CurrentUnit.hbm.xml</value>
+				<value>com/cbs/po/Car.hbm.xml</value>
+				<value>com/cbs/po/CarPic.hbm.xml</value>
+				<value>com/cbs/po/DrivingRec.hbm.xml</value>
+				<value>com/cbs/po/RefuelRec.hbm.xml</value>
+				<value>com/cbs/po/RepairlRec.hbm.xml</value>
+				<value>com/cbs/po/FeesManager.hbm.xml</value>
+				<value>com/cbs/po/MaintainRec.hbm.xml</value>
+				<value>com/cbs/po/PeccancyRec.hbm.xml</value>
+				<value>com/cbs/po/AccidentRec.hbm.xml</value>
+				<value>com/cbs/po/InspectionRec.hbm.xml</value>
+				<value>com/cbs/po/InsuranceRec.hbm.xml</value>
+				<value>com/cbs/po/ViewCostDistribution.hbm.xml</value>
+				<value>com/cbs/po/ViewCostContrast.hbm.xml</value>
+			</list>
+		</property>
+
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.Oracle9Dialect</prop>
+				<prop key="hibernate.show_sql">true</prop>				
+				<!--<prop key="hibernate.format_sql">true</prop> -->
+			</props>
+		</property>
+	</bean>
+	
+	<!-- 定义事务管理器（声明式的事务） -->
+    <bean id="transactionManager"
+        class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory" />
+    </bean>
+    
+    <!-- 事务的传播特性 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*"/><!--所有方法均加入事务处理  -->		
+			<tx:method name="find*" read-only="true" />			
+			<tx:method name="get*" propagation="NEVER"/>
+    		<tx:method name="set*" propagation="NEVER"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- 事务的切面 -->
+	<aop:config proxy-target-class="true">
+		<aop:pointcut id="servicePointcut" expression="execution ( * com.cbs.service.impl.*.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="servicePointcut"/>
+	</aop:config>
+		
+	<!-- 配置DAO--> 
+	<bean id="iud" class="com.cbs.dao.impl.UsersDaoImpl"></bean>
+	<bean id="imd" class="com.cbs.dao.impl.MenuDaoImpl" ></bean>
+	<bean id="ird" class="com.cbs.dao.impl.RoleDaoImpl" ></bean>
+	<bean id="idicd" class="com.cbs.dao.impl.DictionaryDaoImpl" ></bean>
+	<bean id="idrid" class="com.cbs.dao.impl.DriverDaoImpl" ></bean>
+	<bean id="icud" class="com.cbs.dao.impl.CurrentUnitDaoImpl" ></bean>
+	<bean id="icard" class="com.cbs.dao.impl.CarDaoImpl" ></bean>
+	<bean id="icarpicd" class="com.cbs.dao.impl.CarPicDaoImpl" ></bean>
+	<bean id="idrirecd" class="com.cbs.dao.impl.DrivingRecDaoImpl" ></bean>
+	<bean id="irefuelrecd" class="com.cbs.dao.impl.RefuelRecDaoImpl" ></bean>	
+	<bean id="irepairrecd" class="com.cbs.dao.impl.RepairRecDaoImpl" ></bean>
+	<bean id="ifeesmanagerd" class="com.cbs.dao.impl.FeesManagerDaoImpl" ></bean>
+	<bean id="imaintainrecd" class="com.cbs.dao.impl.MaintainRecDaoImpl" ></bean>
+	<bean id="ipeccancyrecd" class="com.cbs.dao.impl.PeccancyRecDaoImpl" ></bean>
+	<bean id="iaccidentrecd" class="com.cbs.dao.impl.AccidentRecDaoImpl" ></bean>
+	<bean id="iinspectionrecd" class="com.cbs.dao.impl.InspectionRecDaoImpl" ></bean>
+	<bean id="iinsurancerecd" class="com.cbs.dao.impl.InsuranceRecDaoImpl" ></bean>
+	
+	
+	<bean id="iviewccd" class="com.cbs.dao.impl.ViewCostContrastDaoImpl" ></bean>
+	<bean id="iviewcdd" class="com.cbs.dao.impl.ViewCostDistributionDaoImpl" ></bean>
+	<!-- 配置服务层 irefs-->	
+	<bean id="ius" class="com.cbs.service.impl.UsersServiceImpl"></bean>
+	<bean id="ims" class="com.cbs.service.impl.MenuServiceImpl"></bean>
+	<bean id="irs" class="com.cbs.service.impl.RoleServiceImpl"></bean>
+	<bean id="idics" class="com.cbs.service.impl.DictionaryServiceImpl"></bean>
+	<bean id="idris" class="com.cbs.service.impl.DriverServiceImpl"></bean>
+	<bean id="icus" class="com.cbs.service.impl.CurrentUnitServiceImpl"></bean>
+	<bean id="icars" class="com.cbs.service.impl.CarServiceImpl"></bean>
+	<bean id="idrirecs" class="com.cbs.service.impl.DrivingRecServiceImpl"></bean>
+	<bean id="iis"  class="com.cbs.service.impl.InsuranceRecServiceImpl" ></bean>
+	<bean id="iips" class="com.cbs.service.impl.InspectionRecServiceImpl" ></bean>
+	<bean id="iaccs" class="com.cbs.service.impl.AccidentRecServiceImpl" ></bean>
+	<bean id="peccs"   class="com.cbs.service.impl.PeccancyRecServiceImpl" ></bean>
+	<bean id="imas"  class="com.cbs.service.impl.MaintainRecServiceImpl" ></bean>
+	<bean id="ifees" class="com.cbs.service.impl.FeesManagerServiceImpl" ></bean>
+	<bean id="irefs"  class="com.cbs.service.impl.RefuelRecServiceimpl" ></bean>
+	<bean id="ireps"  class="com.cbs.service.impl.RepairRecServiceImpl" ></bean>
+	
+<bean id="iviewccs"  class="com.cbs.service.impl.ViewCostContrastServiceImpl" ></bean>
+<bean id="iviewcds"  class="com.cbs.service.impl.ViewCostDistributionServiceImpl" ></bean>
+	
+	
+	
+	<!-- 配置控制层  -->
+	<bean id="usersAction" class="com.cbs.action.UsersAction" scope="prototype"></bean>
+	<bean id="roleAction" class="com.cbs.action.RoleAction" scope="prototype"></bean>
+	<bean id="driverAction" class="com.cbs.action.DriverAction" scope="prototype"></bean>
+	<bean id="cuAction" class="com.cbs.action.CurrentUnitAction" scope="prototype"></bean>
+	<bean id="carAction" class="com.cbs.action.CarAction" scope="prototype"></bean>
+	<bean id="dicAction" class="com.cbs.action.DictionaryAction" scope="prototype"></bean>
+	<bean id="drirecAction" class="com.cbs.action.DrivingRecAction" scope="prototype"></bean>
+	<bean id="insurancerecAction"  class="com.cbs.action.InsuranceRecAction" scope="prototype"></bean>
+	<bean id="inspectionrecAction" class="com.cbs.action.InspectionRecAction" scope="prototype"></bean>
+	<bean id="accidentrecAction"   class="com.cbs.action.AccidentRecAction" scope="prototype"></bean>
+	<bean id="peccancyrecAction"   class="com.cbs.action.PeccancyRecAction" scope="prototype"></bean>
+	<bean id="maintainrecAction"   class="com.cbs.action.MaintainRecAction" scope="prototype"></bean>
+	<bean id="feesAction"   class="com.cbs.action.FeesManagerAction" scope="prototype"></bean>
+	<bean id="refrecAction" class="com.cbs.action.RefuelRecAction" scope="prototype"></bean>
+	<bean id="reprecAction" class="com.cbs.action.RepairRecAction" scope="prototype"></bean>
+
+	
+   <bean id="viewccAction" class="com.cbs.action.ViewCostContrastAction" scope="prototype"></bean>
+	<bean id="viewcdAction" class="com.cbs.action.ViewCostDistributionAction" scope="prototype"></bean>
+	
+</beans>
